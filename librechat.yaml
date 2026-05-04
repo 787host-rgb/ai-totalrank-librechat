@@ -1,0 +1,17 @@
+# AI Total Rank LibreChat configuration
+# This file is intentionally small and brand-focused.
+# Keep deployment secrets in .env, not in this file.
+
+version: 1.3.9
+
+cache: true
+
+interface:
+  customWelcome: 'Welcome to AI Total Rank.'
+  privacyPolicy:
+    externalUrl: 'https://ai.totalrank.pro/privacy'
+    openNewTab: true
+  termsOfService:
+    externalUrl: 'https://ai.totalrank.pro/terms'
+    openNewTab: true
+    modalAcceptance: false

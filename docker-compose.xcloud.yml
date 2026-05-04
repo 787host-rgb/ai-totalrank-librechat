@@ -1,0 +1,94 @@
+name: ai-totalrank-librechat
+
+services:
+  api:
+    container_name: ai-totalrank-api
+    image: ai-totalrank-librechat:local
+    build:
+      context: .
+      dockerfile: Dockerfile.multi
+      args:
+        NODE_MAX_OLD_SPACE_SIZE: ${NODE_MAX_OLD_SPACE_SIZE:-6144}
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+      - meilisearch
+      - rag_api
+    ports:
+      - "3080"
+    expose:
+      - "3080"
+    env_file:
+      - .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3080
+      CONFIG_PATH: /app/librechat.yaml
+      APP_TITLE: ${APP_TITLE:-AI Total Rank}
+      HELP_AND_FAQ_URL: ${HELP_AND_FAQ_URL:-https://ai.totalrank.pro}
+      DOMAIN_CLIENT: ${DOMAIN_CLIENT:-https://ai.totalrank.pro}
+      DOMAIN_SERVER: ${DOMAIN_SERVER:-https://ai.totalrank.pro}
+      MONGO_URI: mongodb://mongodb:27017/AI_Total_Rank
+      MEILI_HOST: http://meilisearch:7700
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-change-me-ai-totalrank-meili-master-key}
+      RAG_PORT: ${RAG_PORT:-8000}
+      RAG_API_URL: http://rag_api:${RAG_PORT:-8000}
+    volumes:
+      - type: bind
+        source: ./librechat.yaml
+        target: /app/librechat.yaml
+        read_only: true
+      - type: bind
+        source: ./.env
+        target: /app/.env
+        read_only: true
+      - ./images:/app/client/public/images
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+
+  mongodb:
+    container_name: ai-totalrank-mongodb
+    image: mongo:8.0.20
+    restart: unless-stopped
+    volumes:
+      - ./data-node:/data/db
+    command: mongod --noauth
+
+  meilisearch:
+    container_name: ai-totalrank-meilisearch
+    image: getmeili/meilisearch:v1.35.1
+    restart: unless-stopped
+    environment:
+      MEILI_HOST: http://meilisearch:7700
+      MEILI_NO_ANALYTICS: "true"
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-change-me-ai-totalrank-meili-master-key}
+    volumes:
+      - ./meili_data_v1.35.1:/meili_data
+
+  vectordb:
+    container_name: ai-totalrank-vectordb
+    image: pgvector/pgvector:0.8.0-pg15-trixie
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ai_totalrank_vectors}
+      POSTGRES_USER: ${POSTGRES_USER:-ai_totalrank}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-ai-totalrank-postgres}
+    volumes:
+      - pgdata2:/var/lib/postgresql/data
+
+  rag_api:
+    container_name: ai-totalrank-rag-api
+    image: registry.librechat.ai/danny-avila/librechat-rag-api-dev-lite:latest
+    restart: unless-stopped
+    depends_on:
+      - vectordb
+    env_file:
+      - .env
+    environment:
+      DB_HOST: vectordb
+      RAG_PORT: ${RAG_PORT:-8000}
+    expose:
+      - "${RAG_PORT:-8000}"
+
+volumes:
+  pgdata2:

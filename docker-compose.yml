@@ -25,6 +25,8 @@ services:
         source: ./.env
         target: /app/.env
       - ./images:/app/client/public/images
+      - ./branding/logo.svg:/app/client/public/assets/logo.svg:ro
+      - ./branding/logo.svg:/app/client/dist/assets/logo.svg:ro
       - ./uploads:/app/uploads
       - ./logs:/app/logs
   mongodb:

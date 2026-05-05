@@ -21,11 +21,12 @@ services:
       - RAG_PORT=${RAG_PORT:-8000}
       - RAG_API_URL=http://rag_api:${RAG_PORT:-8000}
     command: >
-      sh -lc 'sed -i "s|<title>LibreChat</title>|<title>AI Total Rank</title>|g; s|content=\"LibreChat - An open source chat application with support for multiple AI models\"|content=\"AI Total Rank - AI workspace for SEO, ranking, and AI workflows\"|g" /app/client/dist/index.html /app/client/index.html 2>/dev/null || true; npm run backend'
+      sh -lc 'sh /app/branding/apply-branding.sh 2>/tmp/ai-totalrank-branding.err || cat /tmp/ai-totalrank-branding.err; npm run backend'
     volumes:
       - type: bind
         source: ./.env
         target: /app/.env
+      - ./branding:/app/branding:ro
       - ./images:/app/client/public/images
       - ./branding/logo.svg:/app/client/public/assets/logo.svg:ro
       - ./branding/logo.svg:/app/client/dist/assets/logo.svg:ro

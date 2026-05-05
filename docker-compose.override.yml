@@ -1,0 +1,7 @@
+services:
+  api:
+    # Security hardening: expose LibreChat only to the local host.
+    # Nginx/XCloud can still proxy to 127.0.0.1:${PORT}, but the app
+    # should no longer be reachable directly from the public server IP.
+    ports: !override
+      - "127.0.0.1:${PORT}:${PORT}"
